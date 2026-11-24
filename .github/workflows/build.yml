@@ -34,7 +34,7 @@ jobs:
       - name: Landing page
         run: echo "<!doctype html><meta charset=utf-8><title>ashdod-prices</title><p>Ashdod supermarket prices API. See meta.json" > site/index.html
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: site
       - id: deploy
