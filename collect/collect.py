@@ -142,6 +142,10 @@ def main():
         sys.exit("too little data - refusing to publish")
     for k, v in shards.items():
         json.dump(v, open(f"{OUT}/p/{k}.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    # names index: [[barcode, name, number_of_stores_selling], ...] for search and list matching
+    names = [[c, e["n"], len(e["p"])] for sh in shards.values() for c, e in sh.items() if e["n"]]
+    names.sort(key=lambda x: -x[2])
+    json.dump(names, open(f"{OUT}/names.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     json.dump(stores, open(f"{OUT}/stores.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     json.dump({"built": datetime.now(timezone.utc).isoformat(timespec="seconds"), "chains": status,
                "stores": len(stores), "products": total}, open(f"{OUT}/meta.json", "w"), indent=1)
