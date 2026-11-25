@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name=".App"
+        android:allowBackup="false"
+        android:icon="@drawable/ic_launcher"
+        android:label="השוואת מחירים"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".ProductActivity" android:screenOrientation="portrait" />
+        <activity android:name=".ListActivity" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ReceiptActivity" android:screenOrientation="portrait" />
+        <activity android:name=".SettingsActivity" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize" />
+
+        <!-- receives the digital-receipt link: share from SMS, or tap the link -->
+        <activity
+            android:name=".LinkReceiptActivity"
+            android:exported="true"
+            android:label="שמור חשבונית"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="pairzon.com" />
+                <data android:host="*.pairzon.com" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
