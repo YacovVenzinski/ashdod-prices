@@ -62,7 +62,8 @@ def fresh(fname, days=4):
 def ashdod_stores(xml):
     for b in re.findall(r"<Store>(.*?)</Store>", xml, re.S | re.I):
         city, addr, name = tag(b, "City"), tag(b, "Address"), tag(b, "StoreName")
-        if city == ASHDOD_CODE or "אשדוד" in city + addr + name:
+        # Ad Halom industrial zone (south Ashdod) is its own locality code (155) in the feeds
+        if city == ASHDOD_CODE or "אשדוד" in city + addr + name or "עד הלום" in addr + name:
             yield (tag(b, "StoreID").lstrip("0") or "0"), name, addr
 
 # ---------------- Shufersal (public site) ----------------
