@@ -74,18 +74,34 @@ final class Gemini {
         JSONObject body = new JSONObject()
                 .put("contents", new JSONArray().put(new JSONObject().put("parts", parts)))
                 .put("generationConfig", new JSONObject().put("temperature", 0).put("responseMimeType", "application/json"));
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/" + model(c) + ":generateContent";
-        String resp;
-        try {
-            resp = Net.request("POST", url, body.toString(), "x-goog-api-key", key(c), "Content-Type", "application/json");
-        } catch (Net.HttpEx e) {
-            String msg = e.body;
-            try {
-                msg = new JSONObject(e.body).getJSONObject("error").optString("message", e.body);
-            } catch (Exception ignored) {
+        // Overloaded (503/500/429): retry with a pause, then fall back to other models.
+        String[] models = {model(c), "gemini-2.5-flash", "gemini-flash-lite-latest", "gemini-2.5-flash-lite"};
+        String resp = null;
+        IOException last = null;
+        int[] pauses = {0, 3000, 6000};
+        outer:
+        for (int m = 0; m < models.length; m++) {
+            if (m > 0 && models[m].equals(models[0])) continue;
+            for (int a = 0; a < pauses.length; a++) {
+                if (pauses[a] > 0) Thread.sleep(pauses[a]);
+                String url = "https://generativelanguage.googleapis.com/v1beta/models/" + models[m] + ":generateContent";
+                try {
+                    resp = Net.request("POST", url, body.toString(), "x-goog-api-key", key(c), "Content-Type", "application/json");
+                    break outer;
+                } catch (Net.HttpEx e) {
+                    String msg = e.body;
+                    try {
+                        msg = new JSONObject(e.body).getJSONObject("error").optString("message", e.body);
+                    } catch (Exception ignored) {
+                    }
+                    last = new IOException("Gemini " + e.code + ": " + msg);
+                    boolean busy = e.code == 503 || e.code == 500 || e.code == 429 || e.code == 404;
+                    if (!busy) throw last;
+                    if (e.code == 404) break; // model name unknown: try the next model
+                }
             }
-            throw new IOException("Gemini " + e.code + ": " + msg);
         }
+        if (resp == null) throw last != null ? last : new IOException("תשובה לא צפויה מ-Gemini");
         JSONArray cand = new JSONObject(resp).optJSONArray("candidates");
         if (cand == null || cand.length() == 0) throw new IOException("תשובה לא צפויה מ-Gemini");
         String t = cand.getJSONObject(0).getJSONObject("content").getJSONArray("parts").getJSONObject(0).getString("text").trim();

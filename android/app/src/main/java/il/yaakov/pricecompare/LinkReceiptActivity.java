@@ -22,6 +22,8 @@ public class LinkReceiptActivity extends Base {
     int tries;
     String lastText = "";
     boolean done;
+    String pageText = "";
+    android.widget.Button retry;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -108,6 +110,11 @@ public class LinkReceiptActivity extends Base {
 
     void finish(String text) {
         done = true;
+        pageText = text;
+        if (retry != null) {
+            body.removeView(retry);
+            retry = null;
+        }
         status.setText("קורא את החשבונית...");
         String t = text.length() > 30000 ? text.substring(0, 30000) : text;
         Util.IO.execute(() -> {
@@ -128,7 +135,13 @@ public class LinkReceiptActivity extends Base {
                     }
                 });
             } catch (Exception e) {
-                Util.ui(() -> status.setText("שגיאה: " + e.getMessage()));
+                Util.ui(() -> {
+                    status.setText("שגיאה: " + e.getMessage());
+                    retry = new android.widget.Button(this);
+                    retry.setText("נסה שוב");
+                    retry.setOnClickListener(v -> finish(pageText));
+                    body.addView(retry, 1);
+                });
             }
         });
     }
